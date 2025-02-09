@@ -36,88 +36,193 @@ class ESGDashboardApp:
     def __init__(self):
         self.dashboard_creator = DashboardCreator()
         self.comprehensive_query = """
-        Analyze the document and extract ALL ESG metrics, focusing on numerical data. You MUST check and extract data for ALL sections.
-
-        For Environmental Metrics (which you're already extracting well):
-        - Continue extracting as you are currently doing
-
-        For Social Metrics - You MUST extract these if present:
-        - Workforce metrics (employee numbers, diversity percentages)
-        - Training data (hours, participation rates)
-        - Safety metrics (incident rates, safety scores)
-        - Community investment figures
-        - Employee satisfaction scores
-        - Diversity ratios and percentages
-        - Pay equity ratios
-        - Employee turnover rates
-
-        For Governance Metrics - You MUST extract these if present:
-        - Board composition percentages
-        - Independent director ratio
-        - Committee membership numbers
-        - Executive compensation figures
-        - Compliance incident numbers
-        - Risk assessment metrics
-        - Shareholder voting percentages
-        - Ethics violation numbers
-
-        For each metric in ALL sections:
-        - Extract exact numerical values with units
-        - Include time series data if available
-        - Note trends and year-over-year changes
-        - Calculate percentages where relevant
+        Analyze the document and provide a comprehensive structured analysis of all ESG metrics.
+        Return the data in a format optimized for creating diverse and informative visualizations.
 
         Return as JSON with this exact structure:
         {
             "environmental": {
                 "metrics": [
                     {
-                        "id": "env_example",
-                        "title": "Metric Name",
+                        "id": "env_emissions_trend",
+                        "title": "Carbon Emissions Over Time",
                         "visualization": {
-                            "type": "bar|line|pie",
+                            "type": "line",  // Options: line, bar, pie, stacked_bar, area, scatter, gauge, radar
                             "data": {
-                                "x": ["label1", "label2"],
-                                "y": [value1, value2],
-                                "units": "unit"
+                                "x": ["2019", "2020", "2021"],  // Time periods or categories
+                                "y": [100, 90, 85],  // Values
+                                "series": ["Scope 1", "Scope 2", "Scope 3"],  // Optional: for multiple series
+                                "units": "tCO2e"
                             },
                             "properties": {
-                                "x_title": "X Label",
-                                "y_title": "Y Label",
-                                "show_legend": true
+                                "x_title": "Year",
+                                "y_title": "Emissions",
+                                "show_legend": true,
+                                "stacked": false,  // For stacked charts
+                                "color_scheme": ["#2ecc71", "#3498db", "#e74c3c"]  // Optional: custom colors
                             }
                         },
-                        "insights": "Key findings"
+                        "insights": "Key findings about the metric",
+                        "comparison": {
+                            "vs_previous": "-5%",
+                            "vs_target": "-15%"
+                        }
+                    },
+                    {
+                        "id": "env_emissions_breakdown",
+                        "title": "Emissions Distribution by Scope",
+                        "visualization": {
+                            "type": "pie",
+                            "data": {
+                                "labels": ["Scope 1", "Scope 2", "Scope 3"],
+                                "values": [15, 35, 50],
+                                "units": "%"
+                            },
+                            "properties": {
+                                "show_legend": true,
+                                "donut": true,  // For donut charts
+                                "color_scheme": ["#2ecc71", "#3498db", "#e74c3c"]
+                            }
+                        },
+                        "insights": "Breakdown analysis"
+                    },
+                    {
+                        "id": "env_resource_usage",
+                        "title": "Resource Consumption Metrics",
+                        "visualization": {
+                            "type": "stacked_bar",
+                            "data": {
+                                "x": ["Q1", "Q2", "Q3", "Q4"],
+                                "y": [
+                                    [100, 120, 110, 130],
+                                    [50, 55, 45, 60]
+                                ],
+                                "series": ["Water Usage", "Energy Consumption"],
+                                "units": "MWh/m³"
+                            },
+                            "properties": {
+                                "x_title": "Quarter",
+                                "y_title": "Consumption",
+                                "show_legend": true,
+                                "stacked": true
+                            }
+                        },
+                        "insights": "Resource usage patterns"
                     }
                 ],
                 "kpis": [
                     {
-                        "title": "KPI Name",
-                        "value": "value with unit",
-                        "trend": "positive|negative|neutral",
-                        "comparison": "vs previous"
+                        "title": "Carbon Footprint",
+                        "value": "1,234 tCO2e",
+                        "trend": "positive",
+                        "comparison": "-5% vs 2022",
+                        "target": "Target: -10% by 2024",
+                        "visualization": {
+                            "type": "gauge",
+                            "data": {
+                                "value": 85,
+                                "min": 0,
+                                "max": 100,
+                                "thresholds": [33, 66],
+                                "units": "%"
+                            }
+                        }
                     }
                 ]
             },
             "social": {
-                "metrics": [...],
-                "kpis": [...]
+                "metrics": [
+                    {
+                        "id": "social_diversity",
+                        "title": "Workforce Diversity",
+                        "visualization": {
+                            "type": "stacked_bar",
+                            "data": {
+                                "x": ["Board", "Executive", "Management", "Staff"],
+                                "y": [
+                                    [30, 35, 40, 45],
+                                    [70, 65, 60, 55]
+                                ],
+                                "series": ["Female", "Male"],
+                                "units": "%"
+                            },
+                            "properties": {
+                                "x_title": "Level",
+                                "y_title": "Gender Distribution",
+                                "show_legend": true,
+                                "stacked": true
+                            }
+                        },
+                        "insights": "Gender diversity across levels"
+                    },
+                    {
+                        "id": "social_training",
+                        "title": "Training Hours Distribution",
+                        "visualization": {
+                            "type": "radar",
+                            "data": {
+                                "categories": ["Technical", "Soft Skills", "Leadership", "Compliance", "Safety"],
+                                "values": [24, 18, 12, 16, 20],
+                                "units": "hours"
+                            },
+                            "properties": {
+                                "show_legend": true
+                            }
+                        },
+                        "insights": "Training focus areas"
+                    }
+                ],
+                "kpis": []
             },
             "governance": {
-                "metrics": [...],
-                "kpis": [...]
+                "metrics": [
+                    {
+                        "id": "gov_board_composition",
+                        "title": "Board Composition",
+                        "visualization": {
+                            "type": "pie",
+                            "data": {
+                                "labels": ["Independent", "Executive", "Non-Executive"],
+                                "values": [60, 20, 20],
+                                "units": "%"
+                            },
+                            "properties": {
+                                "show_legend": true,
+                                "donut": true
+                            }
+                        },
+                        "insights": "Board independence analysis"
+                    }
+                ],
+                "kpis": []
             }
         }
 
-        IMPORTANT:
-        1. You MUST check and extract data for ALL three sections (environmental, social, governance)
-        2. Include ANY numerical data found, even if it's just a single data point
-        3. For single data points, use bar charts
-        4. For time series, use line charts
-        5. For percentages/distributions, use pie charts
-        6. If no data is found for a section, explicitly note this in the insights
+        Extract and structure ALL available numerical data from the document.
+        For each metric:
+        1. Choose the most appropriate visualization type:
+        - line: for time series and trends
+        - bar: for comparisons
+        - stacked_bar: for component breakdowns over time
+        - pie/donut: for percentage distributions
+        - area: for cumulative trends
+        - scatter: for correlation analysis
+        - gauge: for progress against targets
+        - radar: for multi-dimensional metrics
 
-        Return ONLY the JSON object without any markdown formatting.
+        2. Include comprehensive data:
+        - Multiple series where available
+        - Clear labels and units
+        - Time periods or categories
+        - Relevant comparisons
+
+        3. Add meaningful insights:
+        - Key trends
+        - Notable changes
+        - Significant patterns
+        - Comparisons to targets
+
+        Return ONLY the JSON structure without any additional text.
         """
         self.current_qa_chain = None
     
