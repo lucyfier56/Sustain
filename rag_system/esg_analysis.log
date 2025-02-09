@@ -1,44 +1,113 @@
-2025-02-09 07:20:58,442 - datasets - INFO - PyTorch version 2.4.1 available.
-2025-02-09 07:20:58,443 - datasets - INFO - TensorFlow version 2.18.0 available.
-2025-02-09 07:20:58,586 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-mpnet-base-v2
-2025-02-09 07:21:36,635 - faiss.loader - INFO - Loading faiss.
-2025-02-09 07:21:36,650 - faiss.loader - INFO - Successfully loaded faiss.
-2025-02-09 07:21:36,653 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes.
-2025-02-09 07:21:36,666 - __main__ - INFO - Starting analysis display
-2025-02-09 07:21:36,667 - __main__ - INFO - Sending comprehensive query to RAG
-2025-02-09 07:21:40,422 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-2025-02-09 07:21:40,442 - __main__ - INFO - Received RAG response
-2025-02-09 07:21:40,442 - __main__ - INFO - Formatting data for visualization
-2025-02-09 07:21:40,442 - __main__ - INFO - Starting data formatting process...
-2025-02-09 07:21:40,442 - __main__ - INFO - Extracted analysis text from dictionary response
-2025-02-09 07:21:40,442 - __main__ - INFO - Analysis text length: 3463
-2025-02-09 07:21:40,442 - __main__ - INFO - Sending structuring prompt to LLM...
-2025-02-09 07:21:40,442 - __main__ - ERROR - Error in LLM processing: '\n            "environmental"'
-2025-02-09 07:21:40,442 - __main__ - INFO - Creating fallback structure from raw analysis
-2025-02-09 07:21:40,442 - __main__ - INFO - Processing environmental section
-2025-02-09 07:21:40,444 - __main__ - INFO - Processing social section
-2025-02-09 07:21:40,444 - __main__ - INFO - Processing governance section
-2025-02-09 07:21:40,444 - __main__ - INFO - Fallback structure created
-2025-02-09 07:21:40,444 - __main__ - INFO - Successfully created visualization data
-2025-02-09 07:27:05,459 - datasets - INFO - PyTorch version 2.4.1 available.
-2025-02-09 07:27:05,460 - datasets - INFO - TensorFlow version 2.18.0 available.
-2025-02-09 07:27:05,601 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-mpnet-base-v2
-2025-02-09 07:27:43,690 - faiss.loader - INFO - Loading faiss.
-2025-02-09 07:27:43,705 - faiss.loader - INFO - Successfully loaded faiss.
-2025-02-09 07:27:43,707 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes.
-2025-02-09 07:27:43,722 - __main__ - INFO - Starting analysis display
-2025-02-09 07:27:43,722 - __main__ - INFO - Sending comprehensive query to RAG
-2025-02-09 07:27:48,515 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-2025-02-09 07:27:48,534 - __main__ - INFO - Received RAG response
-2025-02-09 07:27:48,534 - __main__ - INFO - Formatting data for visualization
-2025-02-09 07:27:48,534 - __main__ - INFO - Starting data formatting process...
-2025-02-09 07:27:48,534 - __main__ - INFO - Extracted analysis text from dictionary response
-2025-02-09 07:27:48,534 - __main__ - INFO - Analysis text length: 3677
-2025-02-09 07:27:48,534 - __main__ - INFO - Sending structuring prompt to LLM...
-2025-02-09 07:27:48,535 - __main__ - ERROR - Error in LLM processing: Missing some input keys: {'query'}
-2025-02-09 07:27:48,535 - __main__ - INFO - Creating fallback structure from raw analysis
-2025-02-09 07:27:48,535 - __main__ - INFO - Processing environmental section
-2025-02-09 07:27:48,537 - __main__ - INFO - Processing social section
-2025-02-09 07:27:48,537 - __main__ - INFO - Processing governance section
-2025-02-09 07:27:48,538 - __main__ - INFO - Fallback structure created
-2025-02-09 07:27:48,538 - __main__ - INFO - Successfully created visualization data
+2025-02-09 07:43:17,150 - datasets - INFO - PyTorch version 2.4.1 available.
+2025-02-09 07:43:17,151 - datasets - INFO - TensorFlow version 2.18.0 available.
+2025-02-09 07:43:17,293 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-mpnet-base-v2
+2025-02-09 07:43:55,588 - faiss.loader - INFO - Loading faiss.
+2025-02-09 07:43:55,604 - faiss.loader - INFO - Successfully loaded faiss.
+2025-02-09 07:43:55,607 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes.
+2025-02-09 07:43:55,621 - __main__ - INFO - Starting analysis display
+2025-02-09 07:43:55,623 - __main__ - INFO - Sending comprehensive query to RAG
+2025-02-09 07:44:00,082 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-02-09 07:44:00,102 - __main__ - INFO - Received RAG response
+2025-02-09 07:44:00,103 - __main__ - INFO - Formatting data for visualization
+2025-02-09 07:44:00,103 - __main__ - INFO - Starting data formatting process...
+2025-02-09 07:44:00,103 - __main__ - INFO - Extracted analysis text from dictionary response
+2025-02-09 07:44:00,103 - __main__ - INFO - Analysis text length: 3632
+2025-02-09 07:44:00,103 - __main__ - INFO - Sending structuring prompt to LLM...
+2025-02-09 07:44:08,170 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-02-09 07:44:08,173 - __main__ - INFO - Received response from LLM
+2025-02-09 07:44:08,174 - __main__ - INFO - Extracted result from dictionary response
+2025-02-09 07:44:08,174 - __main__ - INFO - Cleaning JSON response...
+2025-02-09 07:44:08,175 - __main__ - INFO - Starting JSON response cleaning
+2025-02-09 07:44:08,175 - __main__ - WARNING - Error in primary JSON cleaning: unknown extension ?R at position 12
+2025-02-09 07:44:08,175 - __main__ - INFO - Attempting fallback JSON extraction
+2025-02-09 07:44:08,175 - __main__ - INFO - Cleaned JSON length: 9804
+2025-02-09 07:44:08,176 - __main__ - INFO - Successfully parsed JSON
+2025-02-09 07:44:08,176 - __main__ - INFO - Validating data structure
+2025-02-09 07:44:08,176 - __main__ - INFO - Data structure validation successful
+2025-02-09 07:44:08,176 - __main__ - INFO - Successfully validated data structure
+2025-02-09 07:44:08,177 - __main__ - INFO - Successfully created visualization data
+2025-02-09 08:02:44,083 - __main__ - INFO - Starting ESG Analysis Dashboard
+2025-02-09 08:02:44,208 - __main__ - INFO - ESGAnalyzer initialized
+2025-02-09 08:02:47,593 - __main__ - INFO - Starting ESG Analysis Dashboard
+2025-02-09 08:02:47,634 - __main__ - INFO - ESGAnalyzer initialized
+2025-02-09 08:02:47,637 - __main__ - INFO - Starting document processing
+2025-02-09 08:02:50,760 - __main__ - INFO - Successfully extracted text from PDF: 408043 characters
+2025-02-09 08:02:50,765 - __main__ - INFO - Split text into 497 chunks
+2025-02-09 08:02:54,824 - datasets - INFO - PyTorch version 2.4.1 available.
+2025-02-09 08:02:54,825 - datasets - INFO - TensorFlow version 2.18.0 available.
+2025-02-09 08:02:54,958 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-mpnet-base-v2
+2025-02-09 08:03:00,109 - __main__ - INFO - Creating vector store with 497 texts
+2025-02-09 08:03:33,514 - faiss.loader - INFO - Loading faiss.
+2025-02-09 08:03:33,530 - faiss.loader - INFO - Successfully loaded faiss.
+2025-02-09 08:03:33,533 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes.
+2025-02-09 08:03:33,544 - __main__ - INFO - Vector store saved to storage/vector_stores/public/esg_analysis_20250209_080250
+2025-02-09 08:03:33,545 - __main__ - INFO - Creating QA chain
+2025-02-09 08:03:33,545 - __main__ - INFO - Document processing completed successfully
+2025-02-09 08:03:33,547 - __main__ - INFO - Sending comprehensive query to LLM
+2025-02-09 08:03:38,499 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-02-09 08:03:38,518 - __main__ - INFO - Received LLM response
+2025-02-09 08:03:38,520 - __main__ - ERROR - JSON parsing error: Expecting value: line 1 column 1 (char 0)
+2025-02-09 08:09:47,351 - __main__ - INFO - Starting ESG Analysis Dashboard
+2025-02-09 08:09:47,479 - __main__ - INFO - ESGAnalyzer initialized
+2025-02-09 08:09:51,865 - __main__ - INFO - Starting ESG Analysis Dashboard
+2025-02-09 08:09:51,917 - __main__ - INFO - ESGAnalyzer initialized
+2025-02-09 08:09:51,919 - __main__ - INFO - Starting document processing
+2025-02-09 08:09:54,917 - __main__ - INFO - Successfully extracted text from PDF: 408043 characters
+2025-02-09 08:09:54,921 - __main__ - INFO - Split text into 497 chunks
+2025-02-09 08:09:58,805 - datasets - INFO - PyTorch version 2.4.1 available.
+2025-02-09 08:09:58,805 - datasets - INFO - TensorFlow version 2.18.0 available.
+2025-02-09 08:09:58,938 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-mpnet-base-v2
+2025-02-09 08:10:02,710 - __main__ - INFO - Creating vector store with 497 texts
+2025-02-09 08:10:36,345 - faiss.loader - INFO - Loading faiss.
+2025-02-09 08:10:36,375 - faiss.loader - INFO - Successfully loaded faiss.
+2025-02-09 08:10:36,378 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes.
+2025-02-09 08:10:36,390 - __main__ - INFO - Vector store saved to storage/vector_stores/public/esg_analysis_20250209_080954
+2025-02-09 08:10:36,390 - __main__ - INFO - Creating QA chain
+2025-02-09 08:10:36,391 - __main__ - INFO - Document processing completed successfully
+2025-02-09 08:10:36,393 - __main__ - INFO - Sending comprehensive query to LLM
+2025-02-09 08:10:40,334 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-02-09 08:10:40,351 - __main__ - INFO - Received LLM response
+2025-02-09 08:10:40,353 - __main__ - INFO - Successfully parsed JSON response
+2025-02-09 08:10:40,358 - __main__ - ERROR - Error during analysis: 'good' is not an accepted value. delta_color only accepts: 'normal', 'inverse', or 'off'
+2025-02-09 08:13:42,726 - __main__ - INFO - Starting ESG Analysis Dashboard
+2025-02-09 08:13:42,853 - __main__ - INFO - ESGAnalyzer initialized
+2025-02-09 08:13:49,373 - __main__ - INFO - Starting ESG Analysis Dashboard
+2025-02-09 08:13:49,408 - __main__ - INFO - ESGAnalyzer initialized
+2025-02-09 08:13:49,412 - __main__ - INFO - Starting document processing
+2025-02-09 08:13:52,442 - __main__ - INFO - Successfully extracted text from PDF: 408043 characters
+2025-02-09 08:13:52,447 - __main__ - INFO - Split text into 497 chunks
+2025-02-09 08:13:56,586 - datasets - INFO - PyTorch version 2.4.1 available.
+2025-02-09 08:13:56,586 - datasets - INFO - TensorFlow version 2.18.0 available.
+2025-02-09 08:13:56,736 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-mpnet-base-v2
+2025-02-09 08:14:00,279 - __main__ - INFO - Creating vector store with 497 texts
+2025-02-09 08:14:34,233 - faiss.loader - INFO - Loading faiss.
+2025-02-09 08:14:34,249 - faiss.loader - INFO - Successfully loaded faiss.
+2025-02-09 08:14:34,252 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes.
+2025-02-09 08:14:34,265 - __main__ - INFO - Vector store saved to storage/vector_stores/public/esg_analysis_20250209_081352
+2025-02-09 08:14:34,265 - __main__ - INFO - Creating QA chain
+2025-02-09 08:14:34,265 - __main__ - INFO - Document processing completed successfully
+2025-02-09 08:14:34,267 - __main__ - INFO - Sending comprehensive query to LLM
+2025-02-09 08:14:38,976 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-02-09 08:14:38,993 - __main__ - INFO - Received LLM response
+2025-02-09 08:14:38,996 - __main__ - INFO - Successfully parsed JSON response
+2025-02-09 09:06:45,243 - __main__ - INFO - Starting ESG Analysis Dashboard
+2025-02-09 09:06:45,370 - __main__ - INFO - ESGAnalyzer initialized
+2025-02-09 09:07:03,388 - __main__ - INFO - Starting ESG Analysis Dashboard
+2025-02-09 09:07:03,424 - __main__ - INFO - ESGAnalyzer initialized
+2025-02-09 09:07:03,430 - __main__ - INFO - Starting document processing
+2025-02-09 09:07:05,891 - __main__ - INFO - Successfully extracted text from PDF: 357275 characters
+2025-02-09 09:07:05,895 - __main__ - INFO - Split text into 441 chunks
+2025-02-09 09:07:10,163 - datasets - INFO - PyTorch version 2.4.1 available.
+2025-02-09 09:07:10,163 - datasets - INFO - TensorFlow version 2.18.0 available.
+2025-02-09 09:07:10,291 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-mpnet-base-v2
+2025-02-09 09:07:14,631 - __main__ - INFO - Creating vector store with 441 texts
+2025-02-09 09:07:46,340 - faiss.loader - INFO - Loading faiss.
+2025-02-09 09:07:46,357 - faiss.loader - INFO - Successfully loaded faiss.
+2025-02-09 09:07:46,360 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes.
+2025-02-09 09:07:46,372 - __main__ - INFO - Vector store saved to storage/vector_stores/public/esg_analysis_20250209_090705
+2025-02-09 09:07:46,372 - __main__ - INFO - Creating QA chain
+2025-02-09 09:07:46,373 - __main__ - INFO - Document processing completed successfully
+2025-02-09 09:07:46,376 - __main__ - INFO - Sending comprehensive query to LLM
+2025-02-09 09:07:51,486 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-02-09 09:07:51,507 - __main__ - INFO - Received LLM response
+2025-02-09 09:07:51,508 - __main__ - INFO - Successfully parsed JSON response
