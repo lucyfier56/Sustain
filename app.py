@@ -9,7 +9,7 @@ import pickle
 import itertools
 import plotly.express as px
 from plot_setup import finastra_theme
-from download_data import Data
+from merge_data import Data
 import sys
 import metadata_parser
 from groq import Groq
@@ -33,7 +33,6 @@ def initialize_groq_client():
 groq_client = initialize_groq_client()
 
 def get_graph_insight(chart_data, chart_type):
-    """Generate insights for a specific chart using Groq's LLaMA model."""
     if not groq_client:
         return "Insights not available - Groq API key not configured."
         
@@ -53,38 +52,39 @@ def get_graph_insight(chart_data, chart_type):
             messages=[
                 {
                     "role": "system",
-                    "content": "You are an expert financial and ESG analyst skilled at interpreting data visualizations."
+                    "content": """You are an expert ESG and financial analyst with the following capabilities:
+                    Core Expertise:
+                    - Advanced interpretation of ESG metrics and sustainability trends
+                    - Deep understanding of financial markets and corporate performance
+                    - Specialized knowledge in environmental impact, social responsibility, and corporate governance
+                    - Expert analysis of sentiment patterns and market dynamics"""
                 },
                 {
                     "role": "user",
                     "content": prompt
                 }
             ],
-            model="llama-3.3-70b-versatile",
+            model="llama3-70b-8192",
             temperature=0.3
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
         return f"Unable to generate insight: {str(e)}"
 
-
-# Set page config at the very beginning of the script
+# Set page config
 st.set_page_config(
-    page_title="ESG AI",
-    page_icon=os.path.join(".", "raw", "esg_ai_logo.png"),
-    layout='centered',
-    initial_sidebar_state="collapsed"
+    page_title="Sustain | ESG Analytics",
+    page_icon="🌱",
+    layout='wide',
+    initial_sidebar_state="expanded"
 )
-
 
 ####### CACHED FUNCTIONS ######
 @st.cache_data(show_spinner=False)
 def filter_company_data(df_company, esg_categories, start, end):
-    # Convert start and end to Timestamp
     start = pd.Timestamp(start)
     end = pd.Timestamp(end)
     
-    # Filter E,S,G Categories
     comps = []
     for i in esg_categories:
         X = df_company[df_company[i] == True]
@@ -96,7 +96,6 @@ def filter_company_data(df_company, esg_categories, start, end):
 @st.cache_data(show_spinner=False)
 def load_data(start_data, end_data):
     data = Data().read(start_data, end_data)
-    # Ensure DATE column is datetime
     if 'data' in data and 'DATE' in data['data'].columns:
         data['data']['DATE'] = pd.to_datetime(data['data']['DATE'])
     companies = data["data"].Organization.sort_values().unique().tolist()
@@ -108,15 +107,12 @@ def filter_publisher(df_company, publisher):
     if publisher != 'all':
         df_company = df_company[df_company['SourceCommonName'] == publisher]
     return df_company
-
 def get_melted_frame(data_dict, frame_names, keepcol=None, dropcol=None):
     try:
         if keepcol:
-            # Check if the keepcol exists in the DataFrame
             reduced = {k: df[keepcol].rename(k) for k, df in data_dict.items() 
                        if k in frame_names and keepcol in df.columns}
         else:
-            # Check if the dropcol exists in the DataFrame
             reduced = {k: df.drop(columns=dropcol).mean(axis=1).rename(k) 
                        for k, df in data_dict.items() if k in frame_names and dropcol in df.columns}
         
@@ -133,10 +129,9 @@ def get_melted_frame(data_dict, frame_names, keepcol=None, dropcol=None):
     
     except Exception as e:
         st.error(f"Error in get_melted_frame: {str(e)}")
-        return pd.DataFrame()  # Return an empty DataFrame to avoid further issues
+        return pd.DataFrame()
 
 def filter_on_date(df, start, end, date_col="DATE"):
-    # Convert start and end to Timestamp
     start = pd.Timestamp(start)
     end = pd.Timestamp(end)
     
@@ -153,21 +148,19 @@ def get_clickable_name(url):
         return f"[{url}]({url})"
 
 def main(start_data, end_data):
-    ###### CUSTOMIZE COLOR THEME ######
+    # Set up theme
     alt.themes.register("finastra", finastra_theme)
     alt.themes.enable("finastra")
     violet, fuchsia = ["#694ED6", "#C137A2"]
 
-    ###### SET UP PAGE ######
-    icon_path = os.path.join(".", "raw", "esg_ai_logo.png")
-    _, logo, _ = st.columns(3)
-    logo.image(icon_path, width=200)
-    style = ("text-align:center; padding: 0px; font-family: arial black;, "
-             "font-size: 400%")
-    title = f"<h1 style='{style}'>ESG<sup>AI</sup></h1><br><br>"
-    st.write(title, unsafe_allow_html=True)
+    # Header
+    st.markdown("""
+        <div style='text-align: center; padding: 1rem;'>
+            <h1 style='color: #694ED6;'>Sustain | ESG Analytics Dashboard</h1>
+        </div>
+    """, unsafe_allow_html=True)
 
-    ###### LOAD DATA ######
+    # Load data
     with st.spinner(text="Fetching Data..."):
         try:
             data, companies = load_data(start_data, end_data)
@@ -179,28 +172,45 @@ def main(start_data, end_data):
     df_data = data["data"]
     embeddings = data["embed"]
 
-    ####### CREATE SIDEBAR CATEGORY FILTER######
-    st.sidebar.title("Filter Options")
+    # Sidebar Configuration
+    st.sidebar.markdown("""
+        <div style='background-color: #f0f2f6; padding: 1rem; border-radius: 8px;'>
+            <h3 style='color: #694ED6;'>Dashboard Controls</h3>
+        </div>
+    """, unsafe_allow_html=True)
+    
     date_place = st.sidebar.empty()
-    esg_categories = st.sidebar.multiselect("Select News Categories",
-                                          ["E", "S", "G"], ["E", "S", "G"])
+    esg_categories = st.sidebar.multiselect(
+        "ESG Categories",
+        ["E", "S", "G"],
+        ["E", "S", "G"],
+        help="Select Environmental, Social, and/or Governance categories"
+    )
+    
     pub = st.sidebar.empty()
-    num_neighbors = st.sidebar.slider("Number of Connections", 1, 20, value=8)
+    num_neighbors = st.sidebar.slider(
+        "Connection Depth",
+        1, 20, 8,
+        help="Adjust the number of connected companies to display"
+    )
 
-    ###### RUN COMPUTATIONS WHEN A COMPANY IS SELECTED ######
-    company = st.selectbox("Select a Company to Analyze", companies)
+    # Main company selector
+    company = st.selectbox(
+        "Select Company for Analysis",
+        companies,
+        help="Choose a company to view its ESG analytics"
+    )
     if company and company != "Select a Company":
-        ###### FILTER ######
+        # Data preparation
         df_company = df_data[df_data.Organization == company]
         diff_col = f"{company.replace(' ', '_')}_diff"
         esg_keys = ["E_score", "S_score", "G_score"]
         esg_df = get_melted_frame(data, esg_keys, keepcol=diff_col)
         ind_esg_df = get_melted_frame(data, esg_keys, dropcol="industry_tone")
         tone_df = get_melted_frame(data, ["overall_score"], keepcol=diff_col)
-        ind_tone_df = get_melted_frame(data, ["overall_score"],
-                                     dropcol="industry_tone")
+        ind_tone_df = get_melted_frame(data, ["overall_score"], dropcol="industry_tone")
 
-        ####### DATE WIDGET ######
+        # Date range setup
         if isinstance(df_company.DATE.min(), pd.Timestamp):
             min_date = df_company.DATE.min().date()
             max_date = df_company.DATE.max().date()
@@ -208,325 +218,396 @@ def main(start_data, end_data):
             min_date = df_company.DATE.min()
             max_date = df_company.DATE.max()
 
-        selected_dates = date_place.date_input("Select a Date Range",
-            value=[min_date, max_date], 
-            min_value=min_date, 
-            max_value=max_date, 
-            key=None)
-        time.sleep(0.8)
+        selected_dates = date_place.date_input(
+            "Analysis Period",
+            value=[min_date, max_date],
+            min_value=min_date,
+            max_value=max_date
+        )
         start, end = selected_dates
 
-        ###### FILTER DATA ######
+        # Apply filters
         df_company = filter_company_data(df_company, esg_categories, start, end)
         esg_df = filter_on_date(esg_df, start, end)
         ind_esg_df = filter_on_date(ind_esg_df, start, end)
         tone_df = filter_on_date(tone_df, start, end)
         ind_tone_df = filter_on_date(ind_tone_df, start, end)
-        date_filtered = filter_on_date(df_data, start, end)
 
-        ###### PUBLISHER SELECT BOX ######
+        # Publisher filter
         publishers = df_company.SourceCommonName.sort_values().unique().tolist()
         publishers.insert(0, "all")
-        publisher = pub.selectbox("Select Publisher", publishers)
+        publisher = pub.selectbox("News Source Filter", publishers)
         df_company = filter_publisher(df_company, publisher)
 
-        ###### DISPLAY DATA ######
-        with st.expander(f"View {company.title()} Data:", True):
-            st.write(f"### {len(df_company):,d} Matching Articles for " +
-                    company.title())
-            display_cols = ["DATE", "SourceCommonName", "Tone", "Polarity",
-                          "NegativeTone", "PositiveTone"]
-            st.write(df_company[display_cols])
-
-            st.write("#### Sample Articles")
-            link_df = df_company[["DATE", "DocumentIdentifier"]].head(3).copy()
-            link_df["ARTICLE"] = link_df.DocumentIdentifier.apply(get_clickable_name)
-            link_df = link_df[["DATE", "ARTICLE"]].to_markdown(index=False)
-            st.markdown(link_df)
-
-        ###### CHART: METRIC OVER TIME ######
+        # Key Metrics Dashboard
         st.markdown("---")
-        col1, col2 = st.columns((1, 3))
+        metrics_col1, metrics_col2, metrics_col3, metrics_col4 = st.columns(4)
+        
+        with metrics_col1:
+            st.metric(
+                "Total Articles",
+                f"{len(df_company):,}",
+                help="Total number of articles analyzed"
+            )
+        
+        with metrics_col2:
+            avg_tone = df_company['Tone'].mean()
+            st.metric(
+                "Average Tone",
+                f"{avg_tone:.2f}",
+                help="Average sentiment tone (-10 to +10)"
+            )
+        
+        with metrics_col3:
+            avg_esg = esg_df['Score'].mean()
+            st.metric(
+                "ESG Score",
+                f"{avg_esg:.2f}",
+                help="Overall ESG performance score"
+            )
+        
+        with metrics_col4:
+            coverage_days = (end - start).days
+            st.metric(
+                "Analysis Period",
+                f"{coverage_days} days",
+                help="Time period covered in analysis"
+            )
 
-        metric_options = ["Tone", "NegativeTone", "PositiveTone", "Polarity",
-                         "ActivityDensity", "WordCount", "Overall Score",
-                         "ESG Scores"]
-        line_metric = col1.radio("Choose Metric", options=metric_options)
-
-        if line_metric == "ESG Scores":
-            # Get ESG scores
-            esg_df["WHO"] = company.title()
-            ind_esg_df["WHO"] = "Industry Average"
-            esg_plot_df = pd.concat([esg_df, ind_esg_df]
-                                  ).reset_index(drop=True)
-            esg_plot_df.replace({"E_score": "Environment", "S_score": "Social",
-                               "G_score": "Governance"}, inplace=True)
-
-            metric_chart = alt.Chart(esg_plot_df, title="Trends Over Time"
-                                  ).mark_line().encode(
-                x=alt.X("yearmonthdate(DATE):O", title="DATE"),
-                y=alt.Y("Score:Q"),
-                color=alt.Color("ESG", sort=None, legend=alt.Legend(
-                    title=None, orient="top")),
-                strokeDash=alt.StrokeDash("WHO", sort=None, legend=alt.Legend(
-                    title=None, symbolType="stroke", symbolFillColor="gray",
-                    symbolStrokeWidth=4, orient="top")),
-                tooltip=["DATE", "ESG", alt.Tooltip("Score", format=".5f")]
-                )
-
-            # Generate insight for ESG Scores
-            esg_insight = get_graph_insight(esg_plot_df.to_dict(), "ESG Scores Timeline")
-            col2.markdown(f"**Insight:** {esg_insight}")
-
-        else:
-            if line_metric == "Overall Score":
-                line_metric = "Score"
-                tone_df["WHO"] = company.title()
-                ind_tone_df["WHO"] = "Industry Average"
-                plot_df = pd.concat([tone_df, ind_tone_df]).reset_index(drop=True)
-            else:
-                df1 = df_company.groupby("DATE")[line_metric].mean(
-                    ).reset_index()
-                df2 = filter_on_date(df_data.groupby("DATE")[line_metric].mean(
-                    ).reset_index(), start, end)
-                df1["WHO"] = company.title()
-                df2["WHO"] = "Industry Average"
-                plot_df = pd.concat([df1, df2]).reset_index(drop=True)
-            metric_chart = alt.Chart(plot_df, title="Trends Over Time"
-                                   ).mark_line().encode(
-                x=alt.X("yearmonthdate(DATE):O", title="DATE"),
-                y=alt.Y(f"{line_metric}:Q", scale=alt.Scale(type="linear")),
-                color=alt.Color("WHO", legend=None),
-                strokeDash=alt.StrokeDash("WHO", sort=None,
-                    legend=alt.Legend(
-                        title=None, symbolType="stroke", symbolFillColor="gray",
-                        symbolStrokeWidth=4, orient="top",
-                        ),
-                    ),
-                tooltip=["DATE", alt.Tooltip(line_metric, format=".3f")]
+        # Article Details Section
+        with st.expander("📰 Article Analysis Details", expanded=True):
+            st.markdown(f"### News Coverage Analysis for {company.title()}")
+            
+            # Article metrics in columns
+            col1, col2 = st.columns([2, 1])
+            
+            with col1:
+                display_cols = ["DATE", "SourceCommonName", "Tone", "Polarity",
+                              "NegativeTone", "PositiveTone"]
+                st.dataframe(
+                    df_company[display_cols],
+                    use_container_width=True,
+                    height=200
                 )
             
-            # Generate insight for metric trend
-            trend_insight = get_graph_insight(plot_df.to_dict(), f"{line_metric} Trend Analysis")
-            col2.markdown(f"**Insight:** {trend_insight}")
+            with col2:
+                st.markdown("#### Key Articles")
+                link_df = df_company[["DATE", "DocumentIdentifier"]].head(3).copy()
+                link_df["ARTICLE"] = link_df.DocumentIdentifier.apply(get_clickable_name)
+                link_df = link_df[["DATE", "ARTICLE"]].to_markdown(index=False)
+                st.markdown(link_df)
 
-        metric_chart = metric_chart.properties(
-            height=340,
-            width=200
-        ).interactive()
-        col2.altair_chart(metric_chart, use_container_width=True)
+        # Main Dashboard Layout
+        st.markdown("---")
+        st.markdown("### ESG Performance Analysis")
+        
+        # Three-column layout for main visualizations
+        viz_col1, viz_col2, viz_col3 = st.columns([1, 1, 1])
+        # ESG Radar Chart
+        with viz_col1:
+            st.markdown("#### ESG Score Breakdown")
+            avg_esg = data["ESG"]
+            avg_esg.rename(columns={"Unnamed: 0": "Type"}, inplace=True)
+            avg_esg.replace({
+                "T": "Overall",
+                "E": "Environment",
+                "S": "Social",
+                "G": "Governance"
+            }, inplace=True)
 
-        ###### CHART: ESG RADAR ######
-        col1, col2 = st.columns((1, 2))
-        avg_esg = data["ESG"]
-        avg_esg.rename(columns={"Unnamed: 0": "Type"}, inplace=True)
-        avg_esg.replace({"T": "Overall", "E": "Environment",
-                        "S": "Social", "G": "Governance"}, inplace=True)
+            numeric_cols = avg_esg.columns.difference(['Type'])
+            avg_esg[numeric_cols] = avg_esg[numeric_cols].apply(pd.to_numeric, errors='coerce')
+            avg_esg["Industry Average"] = avg_esg[numeric_cols].mean(axis=1)
 
-        # Convert numeric columns to float, excluding the 'Type' column
-        numeric_cols = avg_esg.columns.difference(['Type'])
-        avg_esg[numeric_cols] = avg_esg[numeric_cols].apply(pd.to_numeric, errors='coerce')
+            radar_df = avg_esg[["Type", company, "Industry Average"]].melt(
+                "Type",
+                value_name="score",
+                var_name="entity"
+            )
 
-        # Calculate industry average
-        avg_esg["Industry Average"] = avg_esg[numeric_cols].mean(axis=1)
+            radar = px.line_polar(
+                radar_df,
+                r="score",
+                theta="Type",
+                color="entity",
+                line_close=True,
+                hover_name="Type",
+                hover_data={
+                    "Type": True,
+                    "entity": True,
+                    "score": ":.2f"
+                },
+                color_discrete_map={
+                    "Industry Average": fuchsia,
+                    company: violet
+                }
+            )
+            
+            radar.update_layout(
+                template=None,
+                polar={
+                    "radialaxis": {"showticklabels": False, "ticks": ""},
+                    "angularaxis": {"showticklabels": True, "ticks": ""}
+                },
+                legend={
+                    "title": None,
+                    "yanchor": "middle",
+                    "orientation": "h"
+                },
+                margin={"l": 10, "r": 10, "t": 30, "b": 10},
+                height=400
+            )
+            
+            st.plotly_chart(radar, use_container_width=True)
+    
 
-        radar_df = avg_esg[["Type", company, "Industry Average"]].melt("Type",
-            value_name="score", var_name="entity")
-
-        radar = px.line_polar(radar_df, r="score", theta="Type",
-            color="entity", line_close=True, hover_name="Type",
-            hover_data={"Type": True, "entity": True, "score": ":.2f"},
-            color_discrete_map={"Industry Average": fuchsia, company: violet})
-        radar.update_layout(template=None,
-                          polar={
-                              "radialaxis": {"showticklabels": False,
-                                           "ticks": ""},
-                              "angularaxis": {"showticklabels": False,
-                                            "ticks": ""},
-                          },
-                          legend={"title": None, "yanchor": "middle",
-                                 "orientation": "h"},
-                          title={"text": "<b>ESG Scores</b>",
-                                "x": 0.5, "y": 0.8875,
-                                "xanchor": "center",
-                                "yanchor": "top",
-                                "font": {"family": "Futura", "size": 23}},
-                          margin={"l": 5, "r": 5, "t": 0, "b": 0},
-                          )
-        radar.update_layout(showlegend=False)
-        col1.plotly_chart(radar, use_container_width=True)
-
-        # Generate insight for radar chart
-        radar_insight = get_graph_insight(radar_df.to_dict(), "ESG Radar Comparison")
-        col1.markdown(f"**Insight:** {radar_insight}")
-
-        ###### CHART: DOCUMENT TONE DISTRIBUTION #####
-        dist_chart = alt.Chart(df_company, title="Document Tone "
-                             "Distribution").transform_density(
+        # Tone Distribution
+        with viz_col2:
+            st.markdown("#### Sentiment Distribution")
+            dist_chart = alt.Chart(
+                df_company,
+                title="Document Tone Distribution"
+            ).transform_density(
                 density='Tone',
                 as_=["Tone", "density"]
-            ).mark_area(opacity=0.5,color="purple").encode(
-                    x=alt.X('Tone:Q', scale=alt.Scale(domain=(-10, 10))),
-                    y='density:Q',
-                    tooltip=[alt.Tooltip("Tone", format=".3f"),
-                            alt.Tooltip("density:Q", format=".4f")]
-                ).properties(
-                    height=325,
-                ).configure_title(
-                    dy=-20
-                ).interactive()
-        col2.markdown("### <br>", unsafe_allow_html=True)
-        col2.altair_chart(dist_chart,use_container_width=True)
-
-        # Generate insight for tone distribution
-        tone_insight = get_graph_insight(df_company[['Tone']].to_dict(), "Document Tone Distribution")
-        col2.markdown(f"**Insight:** {tone_insight}")
-
-        ###### CHART: SCATTER OF ARTICLES OVER TIME #####
-        scatter = alt.Chart(df_company, title="Article Tone").mark_circle().encode(
-            x="NegativeTone:Q",
-            y="PositiveTone:Q",
-            size="WordCount:Q",
-            color=alt.Color("Polarity:Q", scale=alt.Scale()),
-            tooltip=[alt.Tooltip("Polarity", format=".3f"),
-                    alt.Tooltip("NegativeTone", format=".3f"),
-                    alt.Tooltip("PositiveTone", format=".3f"),
-                    alt.Tooltip("DATE"),
-                    alt.Tooltip("WordCount", format=",d"),
-                    alt.Tooltip("SourceCommonName", title="Site")]
+            ).mark_area(
+                opacity=0.6,
+                color=violet
+            ).encode(
+                x=alt.X('Tone:Q', scale=alt.Scale(domain=(-10, 10))),
+                y='density:Q',
+                tooltip=[
+                    alt.Tooltip("Tone", format=".3f"),
+                    alt.Tooltip("density:Q", format=".4f")
+                ]
             ).properties(
-                height=450
+                height=350
             ).interactive()
-        st.altair_chart(scatter, use_container_width=True)
+            
+            st.altair_chart(dist_chart, use_container_width=True)
+            
 
-        # Generate insight for scatter plot
-        scatter_insight = get_graph_insight(
-            df_company[['NegativeTone', 'PositiveTone', 'WordCount', 'Polarity']].to_dict(),
-            "Article Tone Scatter Plot"
-        )
-        st.markdown(f"**Insight:** {scatter_insight}")
+        # Metric Over Time
+                # Metric Over Time
+        with viz_col3:
+            st.markdown("#### Temporal Analysis")
+            metric_options = [
+                "Tone",
+                "NegativeTone",
+                "PositiveTone",
+                "Polarity",
+                "Overall Score",
+                "ESG Scores"
+            ]
+            line_metric = st.radio("Select Metric", options=metric_options)
+            
+            if line_metric == "ESG Scores":
+                esg_df["WHO"] = company.title()
+                ind_esg_df["WHO"] = "Industry Average"
+                plot_df = pd.concat([esg_df, ind_esg_df]).reset_index(drop=True)
+                plot_df.replace({
+                    "E_score": "Environment",
+                    "S_score": "Social",
+                    "G_score": "Governance"
+                }, inplace=True)
 
-        ###### NUMBER OF NEIGHBORS TO FIND #####
-        company_df = df_conn[df_conn.company == company]
+                metric_chart = alt.Chart(
+                    plot_df,
+                    title="ESG Trends"
+                ).mark_line().encode(
+                    x=alt.X("yearmonthdate(DATE):O", title="Date"),
+                    y=alt.Y("Score:Q"),
+                    color=alt.Color(
+                        "ESG",
+                        sort=None,
+                        legend=alt.Legend(title=None, orient="top")
+                    ),
+                    strokeDash=alt.StrokeDash(
+                        "WHO",
+                        sort=None,
+                        legend=alt.Legend(
+                            title=None,
+                            symbolType="stroke",
+                            orient="top"
+                        )
+                    ),
+                    tooltip=[
+                        "DATE",
+                        "ESG",
+                        alt.Tooltip("Score", format=".5f")
+                    ]
+                )
+            else:
+                if line_metric == "Overall Score":
+                    line_metric = "Score"
+                    tone_df["WHO"] = company.title()
+                    ind_tone_df["WHO"] = "Industry Average"
+                    plot_df = pd.concat([tone_df, ind_tone_df]).reset_index(drop=True)
+                else:
+                    df1 = df_company.groupby("DATE")[line_metric].mean().reset_index()
+                    df2 = filter_on_date(
+                        df_data.groupby("DATE")[line_metric].mean().reset_index(),
+                        start,
+                        end
+                    )
+                    df1["WHO"] = company.title()
+                    df2["WHO"] = "Industry Average"
+                    plot_df = pd.concat([df1, df2]).reset_index(drop=True)
+                
+                metric_chart = alt.Chart(
+                    plot_df,
+                    title=f"{line_metric} Trends"
+                ).mark_line().encode(
+                    x=alt.X("yearmonthdate(DATE):O", title="Date"),
+                    y=alt.Y(f"{line_metric}:Q", scale=alt.Scale(type="linear")),
+                    color=alt.Color(
+                        "WHO",
+                        legend=alt.Legend(title=None, orient="top")
+                    ),
+                    tooltip=[
+                        "DATE",
+                        alt.Tooltip(line_metric, format=".3f")
+                    ]
+                )
+
+            metric_chart = metric_chart.properties(
+                height=350
+            ).interactive()
+            
+            st.altair_chart(metric_chart, use_container_width=True)
+
+
+        # Company Connections Section
+        st.markdown("---")
+        st.markdown("### 🔗 Company Network Analysis")
         
-        # Get all similarity columns
+        company_df = df_conn[df_conn.company == company]
         similar_org_cols = [col for col in df_conn.columns if 'similar_org' in col]
         similarity_cols = [col for col in df_conn.columns if 'similarity' in col]
         
-        # Limit to the number of neighbors selected by the user
         similar_org_cols = similar_org_cols[:num_neighbors]
         similarity_cols = similarity_cols[:num_neighbors]
-        
-        # Get neighbors and their confidence scores
+
         if not company_df.empty and all(col in company_df.columns for col in similar_org_cols + similarity_cols):
-            neighbors = company_df[similar_org_cols].iloc[0]
-            neighbor_confidences = company_df[similarity_cols].iloc[0]
-
-            ###### CHART: 3D EMBEDDING WITH NEIGHBORS ######
-            st.markdown("---")
-            color_f = lambda f: f"Company: {company.title()}" if f == company else (
-                "Connected Company" if f in neighbors.values else "Other Company")
-            embeddings["colorCode"] = embeddings.company.apply(color_f)
-            point_colors = {
-                f"Company: {company.title()}": violet,
-                "Connected Company": fuchsia,
-                "Other Company": "lightgrey"
-            }
+            conn_col1, conn_col2 = st.columns([2, 1])
             
-            embeddings_plot = embeddings.copy()
-            embeddings_plot.columns = embeddings_plot.columns.astype(str)  # Convert column names to strings
+            with conn_col1:
+                neighbors = company_df[similar_org_cols].iloc[0]
+                neighbor_confidences = company_df[similarity_cols].iloc[0]
+                
+                color_f = lambda f: f"Company: {company.title()}" if f == company else (
+                    "Connected Company" if f in neighbors.values else "Other Company")
+                embeddings["colorCode"] = embeddings.company.apply(color_f)
+                
+                point_colors = {
+                    f"Company: {company.title()}": violet,
+                    "Connected Company": fuchsia,
+                    "Other Company": "#e0e0e0"
+                }
+                
+                fig_3d = px.scatter_3d(
+                    embeddings,
+                    x="0",
+                    y="1",
+                    z="2",
+                    color='colorCode',
+                    color_discrete_map=point_colors,
+                    opacity=0.7,
+                    hover_name="company"
+                )
+                
+                fig_3d.update_layout(
+                    scene={
+                        "xaxis": {"visible": False},
+                        "yaxis": {"visible": False},
+                        "zaxis": {"visible": False}
+                    },
+                    margin={"l": 0, "r": 0, "t": 0, "b": 0},
+                    legend={
+                        "title": None,
+                        "orientation": "h",
+                        "yanchor": "bottom",
+                        "y": 1.02
+                    },
+                    height=500
+                )
+                
+                st.plotly_chart(fig_3d, use_container_width=True)
+                
+                embedding_insight = get_graph_insight(
+                    {
+                        "company": company,
+                        "neighbors": neighbors.to_dict(),
+                        "connections": len(neighbors)
+                    },
+                    "Company Network Analysis"
+                )
+                st.markdown(f"**Network Insights:** {embedding_insight}")
+            with conn_col2:
+                st.markdown("#### Connection Strength")
+                neighbor_conf = pd.DataFrame({
+                    "Neighbor": neighbors.values,
+                    "Confidence": neighbor_confidences.values
+                })
+                
+                conf_plot = alt.Chart(
+                    neighbor_conf,
+                    title="Connected Companies"
+                ).mark_bar().encode(
+                    x=alt.X("Confidence:Q", title="Similarity Score"),
+                    y=alt.Y("Neighbor:N", sort="-x", title=None),
+                    tooltip=["Neighbor", alt.Tooltip("Confidence", format=".3f")],
+                    color=alt.Color(
+                        "Confidence:Q",
+                        scale=alt.Scale(scheme='purples'),
+                        legend=None
+                    )
+                ).properties(
+                    height=25 * num_neighbors + 50
+                ).configure_axis(
+                    grid=False
+                )
+                
+                st.altair_chart(conf_plot, use_container_width=True)
+                
 
-            fig_3d = px.scatter_3d(embeddings_plot, 
-                                x='1',  # Use the actual first numeric column name
-                                y='2',  # Use the actual second numeric column name
-                                z='3',  # Use the actual third numeric column name
-                                color='colorCode',
-                                color_discrete_map=point_colors,
-                                opacity=0.4,
-                                hover_name="company",
-                                hover_data={c: False for c in embeddings_plot.columns},
-                                )
-            fig_3d.update_layout(
-                legend={"orientation": "h",
-                       "yanchor": "bottom",
-                       "title": None},
-                title={"text": "<b>Company Connections</b>",
-                       "x": 0.5, "y": 0.9,
-                       "xanchor": "center",
-                       "yanchor": "top",
-                       "font": {"family": "Futura", "size": 23}},
-                scene={"xaxis": {"visible": False},
-                      "yaxis": {"visible": False},
-                      "zaxis": {"visible": False}},
-                margin={"l": 0, "r": 0, "t": 0, "b": 0},
-            )
-            st.plotly_chart(fig_3d, use_container_width=True)
-
-            # Generate insight for 3D embeddings
-            embedding_insight = get_graph_insight(
-                {
-                    "company": company,
-                    "neighbors": neighbors.to_dict(),
-                    "connections": len(neighbors)
-                },
-                "3D Company Connections"
-            )
-            st.markdown(f"**Network Insight:** {embedding_insight}")
-
-            ###### CHART: NEIGHBOR SIMILARITY ######
-            st.markdown("---")
-            neighbor_conf = pd.DataFrame({
-                "Neighbor": neighbors.values,
-                "Confidence": neighbor_confidences.values
-            })
-            
-            conf_plot = alt.Chart(neighbor_conf, title="Connected Companies"
-                                ).mark_bar().encode(
-                x="Confidence:Q",
-                y=alt.Y("Neighbor:N", sort="-x"),
-                tooltip=["Neighbor", alt.Tooltip("Confidence", format=".3f")],
-                color=alt.Color("Confidence:Q", scale=alt.Scale(), legend=None)
-            ).properties(
-                height=25 * num_neighbors + 100
-            ).configure_axis(grid=False)
-            
-            st.altair_chart(conf_plot, use_container_width=True)
-
-            # Generate insight for similarity scores
-            similarity_insight = get_graph_insight(
-                neighbor_conf.to_dict(),
-                "Company Similarity Analysis"
-            )
-            st.markdown(f"**Similarity Insight:** {similarity_insight}")
 
         else:
             st.warning("No connection data available for this company.")
 
-        # Add a final summary section
+        
+
+        # Overall Analysis Summary
         st.markdown("---")
-        st.markdown("### Overall Analysis Summary")
+        st.markdown("### Comprehensive Performance Overview")
         
-        # Generate overall summary using Groq
-        summary_data = {
-            "company": company,
-            "total_articles": len(df_company),
-            "avg_tone": df_company['Tone'].mean(),
-            "avg_esg_scores": {
-                "Environmental": esg_df[esg_df['ESG'] == 'Environment']['Score'].mean(),
-                "Social": esg_df[esg_df['ESG'] == 'Social']['Score'].mean(),
-                "Governance": esg_df[esg_df['ESG'] == 'Governance']['Score'].mean()
-            },
-            "date_range": f"{start} to {end}"
-        }
-        
-        overall_insight = get_graph_insight(summary_data, "Overall Company Analysis")
-        st.markdown(f"**Summary:** {overall_insight}")
+        st.markdown(f"""
+            #### Key Metrics for {company.title()}
+            
+            **News Sentiment Analysis**
+            - Total Articles: {len(df_company):,}
+            - Coverage Period: {start} to {end}
+            - Average Sentiment: {df_company['Tone'].mean():.2f}
+            - Sentiment Distribution:
+              • Positive: {(df_company['Tone'] > 0).mean():.1%}
+              • Negative: {(df_company['Tone'] < 0).mean():.1%}
+              • Neutral: {(df_company['Tone'] == 0).mean():.1%}
+            - News Sources: {len(df_company['SourceCommonName'].unique())}
+
+            **Network Analysis**
+            - Connected Companies: {num_neighbors}
+            - Strongest Connection: {neighbor_conf['Neighbor'].iloc[0]} 
+            - Connection Strength: {neighbor_conf['Confidence'].iloc[0]:.2f}
+            - Total Network Interactions: {len(df_company):,}
+        """)
+
+
 if __name__ == "__main__":
     try:
         args = sys.argv
         if len(args) != 3:
             start_data = "jan1"
-            end_data = "jan10"
+            end_data = "jan3"
         else:
             start_data = args[1]
             end_data = args[2]
