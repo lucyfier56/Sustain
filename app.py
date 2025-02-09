@@ -507,9 +507,9 @@ def main(start_data, end_data):
                 
                 fig_3d = px.scatter_3d(
                     embeddings,
-                    x="0",
-                    y="1",
-                    z="2",
+                    x="1",
+                    y="2",
+                    z="3",
                     color='colorCode',
                     color_discrete_map=point_colors,
                     opacity=0.7,
@@ -607,7 +607,7 @@ if __name__ == "__main__":
         args = sys.argv
         if len(args) != 3:
             start_data = "jan1"
-            end_data = "jan3"
+            end_data = "jan20"
         else:
             start_data = args[1]
             end_data = args[2]
