@@ -36,104 +36,116 @@ class ESGDashboardApp:
     def __init__(self):
         self.dashboard_creator = DashboardCreator()
         self.comprehensive_query = """
-        Analyze the document and provide a detailed comprehensive analysis of all ESG metrics.
-        Return the response as a clean JSON object without any markdown formatting or additional text.
-        IMPORTANT: Return ONLY the raw JSON object without any markdown formatting (no ``` or ```json tags).
+        Analyze the document and extract ALL ESG metrics, focusing on numerical data. You MUST check and extract data for ALL sections.
 
-        Focus on:
-        1. Environmental Metrics:
-           - Emissions (Scope 1, 2, 3)
-           - Energy consumption and efficiency
-           - Water management
-           - Waste management
-           - Environmental compliance
-           
-        2. Social Metrics:
-           - Workforce diversity and inclusion
-           - Employee training and development
-           - Health and safety metrics
-           - Community engagement
-           - Human rights
-           
-        3. Governance Metrics:
-           - Board composition and diversity
-           - Ethics and compliance
-           - Risk management
-           - Executive compensation
-           - Shareholder rights
-           
-        For each metric:
-        - Extract specific numerical values
-        - Include time series data where available
-        - Note targets and progress
-        - Identify trends and patterns
-        - Compare with previous years
-        
-        Format the response as a structured JSON with the following format:
+        For Environmental Metrics (which you're already extracting well):
+        - Continue extracting as you are currently doing
+
+        For Social Metrics - You MUST extract these if present:
+        - Workforce metrics (employee numbers, diversity percentages)
+        - Training data (hours, participation rates)
+        - Safety metrics (incident rates, safety scores)
+        - Community investment figures
+        - Employee satisfaction scores
+        - Diversity ratios and percentages
+        - Pay equity ratios
+        - Employee turnover rates
+
+        For Governance Metrics - You MUST extract these if present:
+        - Board composition percentages
+        - Independent director ratio
+        - Committee membership numbers
+        - Executive compensation figures
+        - Compliance incident numbers
+        - Risk assessment metrics
+        - Shareholder voting percentages
+        - Ethics violation numbers
+
+        For each metric in ALL sections:
+        - Extract exact numerical values with units
+        - Include time series data if available
+        - Note trends and year-over-year changes
+        - Calculate percentages where relevant
+
+        Return as JSON with this exact structure:
         {
             "environmental": {
                 "metrics": [
                     {
-                        "id": "env_emissions",
-                        "title": "Carbon Emissions",
+                        "id": "env_example",
+                        "title": "Metric Name",
                         "visualization": {
-                            "type": "bar",
+                            "type": "bar|line|pie",
                             "data": {
-                                "x": ["Scope 1", "Scope 2", "Scope 3"],
-                                "y": [actual_values],
-                                "units": "tCO2e"
+                                "x": ["label1", "label2"],
+                                "y": [value1, value2],
+                                "units": "unit"
                             },
                             "properties": {
-                                "x_title": "Emission Scope",
-                                "y_title": "Value",
+                                "x_title": "X Label",
+                                "y_title": "Y Label",
                                 "show_legend": true
                             }
                         },
-                        "insights": "Key findings about this metric"
+                        "insights": "Key findings"
                     }
                 ],
                 "kpis": [
                     {
-                        "title": "Total Emissions",
-                        "value": "actual_value tCO2e",
-                        "trend": "positive/negative/neutral",
-                        "comparison": "vs previous year"
+                        "title": "KPI Name",
+                        "value": "value with unit",
+                        "trend": "positive|negative|neutral",
+                        "comparison": "vs previous"
                     }
                 ]
             },
             "social": {
-                "metrics": [],
-                "kpis": []
+                "metrics": [...],
+                "kpis": [...]
             },
             "governance": {
-                "metrics": [],
-                "kpis": []
+                "metrics": [...],
+                "kpis": [...]
             }
         }
 
-        Rules:
-        1. Extract ALL numerical values with their units
-        2. Use appropriate visualization types:
-           - line charts for time series data
-           - bar charts for comparisons
-           - pie charts for percentages
-        3. Include ONLY metrics with actual numerical values
-        4. Always include units where available
-        5. Add meaningful insights for each metric
-        6. Ensure chronological ordering for time series data
-        7. Group related metrics together
+        IMPORTANT:
+        1. You MUST check and extract data for ALL three sections (environmental, social, governance)
+        2. Include ANY numerical data found, even if it's just a single data point
+        3. For single data points, use bar charts
+        4. For time series, use line charts
+        5. For percentages/distributions, use pie charts
+        6. If no data is found for a section, explicitly note this in the insights
 
-        Return ONLY the JSON structure, no additional text or explanations.
-        Ensure all numerical values are properly formatted and include their units
+        Return ONLY the JSON object without any markdown formatting.
         """
+        self.current_qa_chain = None
     
     def run(self):
         self._setup_page()
+        
+        # Initialize session state for storing vector store and QA chain
+        if "vector_store" not in st.session_state:
+            st.session_state.vector_store = None
+        if "qa_chain" not in st.session_state:
+            st.session_state.qa_chain = None
+        if "chat_history" not in st.session_state:
+            st.session_state.chat_history = []
+
         analyzer = ESGAnalyzer(ESGConfig.GROQ_API_KEY)
         uploaded_file = st.file_uploader("Upload Sustainability Report (PDF)", type="pdf")
         
         if uploaded_file:
-            self._process_document(uploaded_file, analyzer)
+            file_name = uploaded_file.name
+            
+            # Check if we need to process a new file
+            if "current_file" not in st.session_state or st.session_state.current_file != file_name:
+                logger.info("Processing new file")
+                self._process_document(uploaded_file, analyzer)
+                st.session_state.current_file = file_name
+            else:
+                logger.info("Using existing processed file")
+                self._display_analysis()
 
     def _setup_page(self):
         st.set_page_config(
@@ -159,66 +171,162 @@ class ESGDashboardApp:
             )
             
             if analysis_result:
-                self._display_analysis(analysis_result)
+                # Store in session state
+                st.session_state.vector_store = analysis_result["vectorstore"]
+                st.session_state.qa_chain = analysis_result["qa_chain"]
+                self._display_analysis()
             else:
                 st.error("Failed to process the document. Please check the file and try again.")
 
-    def _display_analysis(self, analysis_result):
-        st.success("Document processed successfully!")
+    def _format_raw_analysis(self, text: str) -> str:
+        """Format raw analysis text for better display"""
+        # Remove any markdown code blocks
+        text = re.sub(r'```.*?```', '', text, flags=re.DOTALL)
         
-        with st.spinner("Generating comprehensive ESG analysis..."):
+        # Add proper line breaks for bullet points
+        text = re.sub(r'•', '\n•', text)
+        text = re.sub(r'- ', '\n- ', text)
+        
+        # Add spacing between sections
+        text = re.sub(r'\n{3,}', '\n\n', text)
+        
+        return text.strip()
+
+    
+    def _display_analysis(self):
+        st.success("Document processed successfully!")
+
+        # Create main tabs for Dashboard, Raw Analysis, and Chat
+        dashboard_tab, raw_analysis_tab, chat_tab = st.tabs([
+            "📊 Dashboard", 
+            "📑 Raw Analysis",
+            "💬 Chat"
+        ])
+
+        with st.spinner("Analyzing ESG metrics..."):
             try:
                 logger.info("Sending comprehensive query to LLM")
-                raw_response = analysis_result["qa_chain"].invoke({"query": self.comprehensive_query})
+                raw_response = st.session_state.qa_chain.invoke({"query": self.comprehensive_query})
                 logger.info("Received LLM response")
-                logger.debug(f"Raw response: {raw_response}")
 
-                # Debug: Show raw response
-                with st.expander("Debug: Raw Analysis", expanded=False):
-                    st.json(raw_response)
-
-                # Extract and parse the response
-                try:
-                    # Get the result content
-                    if isinstance(raw_response, dict):
-                        result_content = raw_response.get("result", "")
-                    else:
-                        result_content = str(raw_response)
-
-                    # Clean up the response - remove markdown backticks and 'json' identifier
-                    cleaned_content = result_content.replace("```json", "").replace("```", "").strip()
-                    logger.debug(f"Cleaned content: {cleaned_content}")
-
-                    # Parse the JSON
-                    visualization_data = json.loads(cleaned_content)
-                    logger.info("Successfully parsed JSON response")
-
-                    # Debug: Show parsed data
-                    with st.expander("Debug: Structured Data", expanded=False):
-                        st.json(visualization_data)
-
-                    # Create dashboard
-                    self._create_dashboard(visualization_data)
-
-                except json.JSONDecodeError as e:
-                    logger.error(f"JSON parsing error: {str(e)}")
-                    st.error("Failed to parse the analysis data")
-                    
-                    # Show the problematic content for debugging
-                    with st.expander("Raw Response Content", expanded=True):
-                        st.text("Raw Response:")
-                        st.write(raw_response)
-                        st.text("Attempted to parse:")
+                with dashboard_tab:
+                    try:
+                        # Clean and parse the response for dashboard
                         if isinstance(raw_response, dict):
-                            st.write(raw_response.get("result", "No result found"))
+                            result_content = raw_response.get("result", "")
                         else:
-                            st.write(raw_response)
+                            result_content = str(raw_response)
+
+                        cleaned_content = result_content.replace("```json", "").replace("```", "").strip()
+                        visualization_data = json.loads(cleaned_content)
+                        
+                        # Create dashboard
+                        self._create_dashboard(visualization_data)
+
+                    except json.JSONDecodeError as e:
+                        logger.error(f"JSON parsing error: {str(e)}")
+                        st.error("Failed to create dashboard visualization")
+                        st.write("Please check the Raw Analysis tab for the extracted data.")
+
+                with raw_analysis_tab:
+                    env_tab, social_tab, gov_tab = st.tabs([
+                        "Environmental Analysis",
+                        "Social Analysis",
+                        "Governance Analysis"
+                    ])
+
+                    # Use stored QA chain for analysis
+                    with env_tab:
+                        env_query = "Analyze and extract all Environmental metrics and data from the document. Include all numerical values, trends, and patterns."
+                        env_response = st.session_state.qa_chain.invoke({"query": env_query})
+                        st.markdown("### Environmental Analysis")
+                        st.markdown(env_response.get("result", "No environmental data found"))
+
+                    with social_tab:
+                        social_query = "Analyze and extract all Social metrics and data from the document. Include all numerical values, trends, and patterns."
+                        social_response = st.session_state.qa_chain.invoke({"query": social_query})
+                        st.markdown("### Social Analysis")
+                        st.markdown(social_response.get("result", "No social data found"))
+
+                    with gov_tab:
+                        gov_query = "Analyze and extract all Governance metrics and data from the document. Include all numerical values, trends, and patterns."
+                        gov_response = st.session_state.qa_chain.invoke({"query": gov_query})
+                        st.markdown("### Governance Analysis")
+                        st.markdown(gov_response.get("result", "No governance data found"))
+
+                with chat_tab:
+                    self._display_chat_interface()
 
             except Exception as e:
                 logger.error(f"Error during analysis: {str(e)}")
                 st.error(f"Error during analysis: {str(e)}")
                 st.write("Please try again or contact support if the issue persists.")
 
+    def _display_chat_interface(self):
+        """Display chat interface using the stored QA chain"""
+        if not st.session_state.qa_chain:
+            st.warning("Please upload a document first to enable chat.")
+            return
+
+        st.markdown("### Chat with the Document")
+        
+        # Display chat history
+        for message in st.session_state.chat_history:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+        # Chat input
+        if prompt := st.chat_input("Ask a question about the document..."):
+            # Add user message to chat history
+            st.session_state.chat_history.append({"role": "user", "content": prompt})
+            
+            # Display user message
+            with st.chat_message("user"):
+                st.markdown(prompt)
+
+            # Get AI response using the stored QA chain
+            with st.chat_message("assistant"):
+                with st.spinner("Thinking..."):
+                    context_prompt = f"""
+                    Based on the document content, answer the following question.
+                    Be specific and include numerical data where relevant.
+                    
+                    Question: {prompt}
+                    """
+                    response = st.session_state.qa_chain.invoke({"query": context_prompt})
+                    response_content = response.get("result", "I couldn't find an answer to that question.")
+                    
+                    st.markdown(response_content)
+                    
+                    # Add AI response to chat history
+                    st.session_state.chat_history.append({
+                        "role": "assistant",
+                        "content": response_content
+                    })
+
+        # Add download button for chat history
+        if st.session_state.chat_history:
+            chat_history_str = "\n\n".join([
+                f"{msg['role'].upper()}: {msg['content']}" 
+                for msg in st.session_state.chat_history
+            ])
+            
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                st.download_button(
+                    label="Download Chat History",
+                    data=chat_history_str,
+                    file_name=f"chat_history_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+                    mime="text/plain"
+                )
+            
+            with col2:
+                # Add clear chat history button
+                if st.button("Clear Chat History"):
+                    st.session_state.chat_history = []
+                    st.rerun()
+
+                
     def _create_dashboard(self, data: Dict):
         """Create the dashboard with visualizations"""
         
@@ -268,24 +376,35 @@ class ESGDashboardApp:
 
     def _display_category_metrics(self, category_data: Dict, category: str):
         """Display metrics for a specific category"""
-        if not category_data:
-            st.info(f"No {category.title()} metrics available")
-            return
+        logger.info(f"Displaying metrics for category: {category}")
+        logger.debug(f"Category data: {category_data}")
         
+        if not category_data or (not category_data.get("metrics") and not category_data.get("kpis")):
+            logger.warning(f"No {category} metrics available")
+            st.info(f"No {category.title()} metrics found in the document. This might be because:")
+            st.markdown("""
+            - The data is not present in the document
+            - The data is not in a format that can be extracted
+            - The metrics are reported in a different section
+            """)
+            return
+
         # Display metrics and their visualizations
-        if 'metrics' in category_data and category_data['metrics']:
-            for metric in category_data['metrics']:
-                with st.expander(metric.get('title', 'Metric'), expanded=True):
-                    # Create visualization
-                    viz_config = metric.get('visualization', {})
+        if category_data.get("metrics"):
+            logger.info(f"Found {len(category_data['metrics'])} metrics for {category}")
+            for metric in category_data["metrics"]:
+                logger.debug(f"Processing metric: {metric.get('title')}")
+                with st.expander(metric.get("title", "Metric"), expanded=True):
+                    viz_config = metric.get("visualization", {})
                     if viz_config:
                         fig = self._create_visualization(viz_config, category)
                         if fig:
                             st.plotly_chart(fig, use_container_width=True)
+                        else:
+                            logger.warning(f"Failed to create visualization for metric: {metric.get('title')}")
                     
-                    # Display insights
-                    if 'insights' in metric:
-                        st.info(metric['insights'])
+                    if "insights" in metric:
+                        st.info(metric["insights"])
 
     def _create_visualization(self, viz_config: Dict, category: str) -> Optional[go.Figure]:
         """Create a Plotly visualization based on the configuration"""
