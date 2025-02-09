@@ -1,0 +1,44 @@
+2025-02-09 07:20:58,442 - datasets - INFO - PyTorch version 2.4.1 available.
+2025-02-09 07:20:58,443 - datasets - INFO - TensorFlow version 2.18.0 available.
+2025-02-09 07:20:58,586 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-mpnet-base-v2
+2025-02-09 07:21:36,635 - faiss.loader - INFO - Loading faiss.
+2025-02-09 07:21:36,650 - faiss.loader - INFO - Successfully loaded faiss.
+2025-02-09 07:21:36,653 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes.
+2025-02-09 07:21:36,666 - __main__ - INFO - Starting analysis display
+2025-02-09 07:21:36,667 - __main__ - INFO - Sending comprehensive query to RAG
+2025-02-09 07:21:40,422 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-02-09 07:21:40,442 - __main__ - INFO - Received RAG response
+2025-02-09 07:21:40,442 - __main__ - INFO - Formatting data for visualization
+2025-02-09 07:21:40,442 - __main__ - INFO - Starting data formatting process...
+2025-02-09 07:21:40,442 - __main__ - INFO - Extracted analysis text from dictionary response
+2025-02-09 07:21:40,442 - __main__ - INFO - Analysis text length: 3463
+2025-02-09 07:21:40,442 - __main__ - INFO - Sending structuring prompt to LLM...
+2025-02-09 07:21:40,442 - __main__ - ERROR - Error in LLM processing: '\n            "environmental"'
+2025-02-09 07:21:40,442 - __main__ - INFO - Creating fallback structure from raw analysis
+2025-02-09 07:21:40,442 - __main__ - INFO - Processing environmental section
+2025-02-09 07:21:40,444 - __main__ - INFO - Processing social section
+2025-02-09 07:21:40,444 - __main__ - INFO - Processing governance section
+2025-02-09 07:21:40,444 - __main__ - INFO - Fallback structure created
+2025-02-09 07:21:40,444 - __main__ - INFO - Successfully created visualization data
+2025-02-09 07:27:05,459 - datasets - INFO - PyTorch version 2.4.1 available.
+2025-02-09 07:27:05,460 - datasets - INFO - TensorFlow version 2.18.0 available.
+2025-02-09 07:27:05,601 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-mpnet-base-v2
+2025-02-09 07:27:43,690 - faiss.loader - INFO - Loading faiss.
+2025-02-09 07:27:43,705 - faiss.loader - INFO - Successfully loaded faiss.
+2025-02-09 07:27:43,707 - faiss - INFO - Failed to load GPU Faiss: name 'GpuIndexIVFFlat' is not defined. Will not load constructor refs for GPU indexes.
+2025-02-09 07:27:43,722 - __main__ - INFO - Starting analysis display
+2025-02-09 07:27:43,722 - __main__ - INFO - Sending comprehensive query to RAG
+2025-02-09 07:27:48,515 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-02-09 07:27:48,534 - __main__ - INFO - Received RAG response
+2025-02-09 07:27:48,534 - __main__ - INFO - Formatting data for visualization
+2025-02-09 07:27:48,534 - __main__ - INFO - Starting data formatting process...
+2025-02-09 07:27:48,534 - __main__ - INFO - Extracted analysis text from dictionary response
+2025-02-09 07:27:48,534 - __main__ - INFO - Analysis text length: 3677
+2025-02-09 07:27:48,534 - __main__ - INFO - Sending structuring prompt to LLM...
+2025-02-09 07:27:48,535 - __main__ - ERROR - Error in LLM processing: Missing some input keys: {'query'}
+2025-02-09 07:27:48,535 - __main__ - INFO - Creating fallback structure from raw analysis
+2025-02-09 07:27:48,535 - __main__ - INFO - Processing environmental section
+2025-02-09 07:27:48,537 - __main__ - INFO - Processing social section
+2025-02-09 07:27:48,537 - __main__ - INFO - Processing governance section
+2025-02-09 07:27:48,538 - __main__ - INFO - Fallback structure created
+2025-02-09 07:27:48,538 - __main__ - INFO - Successfully created visualization data
